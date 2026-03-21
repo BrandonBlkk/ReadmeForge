@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { LayoutGrid, FileText, Settings, Download, Plus } from 'lucide-react'
+import { LayoutGrid, Settings, Download, Plus } from 'lucide-react'
 
 const sidebarItems = [
   { id: 'add', icon: Plus, label: 'Add Section', action: 'add' },
@@ -11,39 +10,17 @@ const sidebarItems = [
 const Sidebar = ({ activePanel, onPanelChange }) => {
   return (
     <aside
-      style={{
-        width: '48px',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        paddingTop: '16px',
-        gap: '4px',
-        background: 'rgba(24, 24, 27, 0.75)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderRight: '1px solid var(--border-default)',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        zIndex: 40,
-      }}
+      className="fixed left-0 top-0 z-40 flex min-h-screen w-12 flex-col items-center gap-1 border-r border-zinc-800 bg-zinc-900/75 pt-4 backdrop-blur-lg"
     >
       {/* Logo mark */}
       <div
-        style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--accent-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '16px',
-          border: '1px solid rgba(59,130,246,0.2)',
-        }}
+        className="mb-4 flex h-8 w-8 items-center justify-center rounded-lg cursor-pointer"
       >
-        <FileText size={16} style={{ color: 'var(--accent)' }} />
+        <img
+          src="/logo.svg"
+          alt="Profile"
+          className="h-5 w-5 rounded-full select-none"
+        />
       </div>
 
       {sidebarItems.map((item) => {
@@ -55,43 +32,15 @@ const Sidebar = ({ activePanel, onPanelChange }) => {
             onClick={() => onPanelChange(item.action)}
             title={item.label}
             aria-label={item.label}
-            style={{
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 150ms ease',
-              background: isActive ? 'var(--accent-muted)' : 'transparent',
-              color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-              position: 'relative',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background = 'var(--bg-elevated)'
-                e.currentTarget.style.color = 'var(--text-secondary)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = 'var(--text-muted)'
-              }
-            }}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-lg border border-transparent transition-all duration-150 cursor-pointer ${
+              isActive
+                ? 'bg-blue-500/15 text-blue-500'
+                : 'text-zinc-500 hover:bg-[#1e1e22] hover:text-zinc-400'
+            }`}
           >
             {isActive && (
               <span
-                style={{
-                  position: 'absolute',
-                  left: '-6px',
-                  width: '3px',
-                  height: '16px',
-                  borderRadius: '0 2px 2px 0',
-                  background: 'var(--accent)',
-                }}
+                className="absolute -left-1.5 h-4 w-0.75 rounded-r-xs bg-blue-500"
               />
             )}
             <Icon size={18} />

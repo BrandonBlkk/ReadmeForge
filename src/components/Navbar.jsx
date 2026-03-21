@@ -1,111 +1,63 @@
 import { Copy, RotateCcw } from 'lucide-react'
+import { useState } from 'react';
 
 const Navbar = ({ onReset, onCopy }) => {
+  const [isBeta, setIsBeta] = useState(true);
+  const [isRotating, setIsRotating] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+
+  const handleResetClick = () => {
+    setIsRotating(true);
+    onReset();
+    setTimeout(() => setIsRotating(false), 500);
+  };
+
+  const handleCopyClick = () => {
+    setIsCopying(true);
+    onCopy();
+    setTimeout(() => setIsCopying(false), 500);
+  };
+
   return (
     <header
-      className="glass"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 30,
-        padding: '12px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        borderTop: 'none',
-        borderLeft: 'none',
-        borderRight: 'none',
-        borderRadius: 0,
-        borderBottom: '1px solid var(--border-default)',
-      }}
+      className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-900/75 px-6 py-3 backdrop-blur-lg"
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <h1
-          style={{
-            fontSize: '14px',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          ReadmeForge
+      <div className="flex items-center gap-3">
+        <h1 className="text-sm font-semibold tracking-[-0.01em] text-zinc-50">
+          BranReadme
         </h1>
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 500,
-            color: 'var(--text-faint)',
-            padding: '2px 8px',
-            borderRadius: '9999px',
-            border: '1px solid var(--border-default)',
-            background: 'var(--bg-surface)',
-          }}
-        >
-          v1.0
-        </span>
+        { isBeta ?
+          <span className="rounded-full border border-rose-800 bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-rose-400">
+            Beta
+          </span> :
+          <span className="rounded-full border border-zinc-600 bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
+            v1.0
+          </span>
+        }
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="flex items-center gap-2 select-none">
         <button
           type="button"
-          onClick={onReset}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            fontSize: '12px',
-            fontWeight: 500,
-            fontFamily: 'var(--font-sans)',
-            color: 'var(--text-secondary)',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            transition: 'all 150ms ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-muted)'
-            e.currentTarget.style.color = 'var(--text-primary)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-default)'
-            e.currentTarget.style.color = 'var(--text-secondary)'
-          }}
+          onClick={handleResetClick}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-all duration-150 hover:border-zinc-700 hover:text-zinc-50 cursor-pointer"
         >
-          <RotateCcw size={13} />
+          <RotateCcw 
+            size={13} 
+            className={`${isRotating ? '-rotate-360 transition-all duration-300 ease-in-out' : ''}`} 
+          />
           Reset
         </button>
 
         <button
           type="button"
-          onClick={onCopy}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            fontSize: '12px',
-            fontWeight: 500,
-            fontFamily: 'var(--font-sans)',
-            color: '#fff',
-            background: 'var(--accent)',
-            border: '1px solid var(--accent)',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            transition: 'all 150ms ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--accent-hover)'
-            e.currentTarget.style.borderColor = 'var(--accent-hover)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--accent)'
-            e.currentTarget.style.borderColor = 'var(--accent)'
-          }}
+          onClick={handleCopyClick}
+          className="flex items-center gap-1.5 rounded-lg border border-rose-600 bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition-all duration-150 hover:border-rose-500 hover:bg-rose-500 cursor-pointer"
         >
-          <Copy size={13} />
+          <Copy 
+            size={13} 
+            className={`${isCopying ? 'transform scale-90 transition-all duration-300 ease-in-out' : ''}`}
+          />
           Copy Markdown
         </button>
       </div>
