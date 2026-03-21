@@ -3,39 +3,17 @@ import profileImage from '../assets/images/Profile.png';
 export default function Footer() {
   return (
     <footer
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        padding: '20px 0',
-        borderTop: '1px solid var(--border-default)',
-        fontSize: '11px',
-        fontWeight: 500,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: 'var(--text-muted)',
-        marginTop: 'auto',
-      }}
+      className="mt-auto flex items-center justify-center gap-2 border-t border-zinc-800 py-5 text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500"
     >
       Made by
       <a
         href="https://github.com/BrandonBlkk"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          color: 'var(--text-primary)',
-          textDecoration: 'none',
-          transition: 'color 200ms ease',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent)' }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}
+        className="flex items-center gap-1.5 text-zinc-50 no-underline transition-colors duration-200 hover:text-blue-500"
       >
         <img
           src={profileImage}
           alt="Profile"
-          style={{ width: '20px', height: '20px', borderRadius: '50%' }}
+          className="h-5 w-5 rounded-full select-none"
         />
         Brandon
       </a>

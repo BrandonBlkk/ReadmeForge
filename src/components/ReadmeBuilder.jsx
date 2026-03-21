@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react'
+﻿import React, { useEffect, useMemo, useState } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
@@ -183,6 +183,18 @@ const SECTION_DESCRIPTIONS = SECTION_LIBRARY.reduce((acc, item) => {
   return acc
 }, {})
 
+const SECTION_PILL_BASE =
+  'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.05em]'
+const SECTION_PILL_VARIANTS = {
+  header: 'text-[#a78bfa] border-[rgba(167,139,250,0.3)] bg-[rgba(167,139,250,0.08)]',
+  stats: 'text-[#34d399] border-[rgba(52,211,153,0.3)] bg-[rgba(52,211,153,0.08)]',
+  skills: 'text-[#fbbf24] border-[rgba(251,191,36,0.3)] bg-[rgba(251,191,36,0.08)]',
+  socials: 'text-[#60a5fa] border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.08)]',
+  about: 'text-[#f472b6] border-[rgba(244,114,182,0.3)] bg-[rgba(244,114,182,0.08)]',
+}
+const getSectionPillClass = (type) =>
+  `${SECTION_PILL_BASE} ${SECTION_PILL_VARIANTS[type] ?? 'text-zinc-500 border-zinc-800 bg-zinc-900'}`
+
 const sanitizeHex = (value) => String(value ?? '').replace('#', '').trim()
 
 /* ── Markdown Generators ───────────────────────────── */
@@ -264,46 +276,18 @@ const generateMarkdown = (sections) =>
     .join('\n\n')
 
 /* ── Shared Styles ─────────────────────────────────── */
-const inputStyle = {
-  width: '100%',
-  padding: '8px 12px',
-  fontSize: '13px',
-  fontFamily: 'var(--font-mono)',
-  color: 'var(--text-primary)',
-  background: 'var(--bg-base)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-md)',
-  outline: 'none',
-  transition: 'border-color 150ms ease, box-shadow 150ms ease',
-}
-
-const inputFocusProps = {
-  onFocus: (e) => {
-    e.currentTarget.style.borderColor = 'var(--accent)'
-    e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-muted)'
-  },
-  onBlur: (e) => {
-    e.currentTarget.style.borderColor = 'var(--border-default)'
-    e.currentTarget.style.boxShadow = 'none'
-  },
-}
-
-const labelStyle = {
-  fontSize: '11px',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color: 'var(--text-muted)',
-  fontFamily: 'var(--font-sans)',
-}
+const labelClass =
+  'text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-500'
+const inputClass =
+  'w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[13px] font-mono text-zinc-50 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15'
 
 /* ── Form Components ───────────────────────────────── */
 const Field = ({ label, hint, children }) => (
-  <label style={{ display: 'block' }}>
-    <span style={{ ...labelStyle, display: 'block', marginBottom: '6px' }}>{label}</span>
+  <label className="block">
+    <span className={`mb-1.5 block ${labelClass}`}>{label}</span>
     {children}
     {hint && (
-      <span style={{ display: 'block', marginTop: '4px', fontSize: '11px', color: 'var(--text-faint)' }}>
+      <span className="mt-1 block text-[11px] text-zinc-600">
         {hint}
       </span>
     )}
@@ -314,54 +298,27 @@ const Toggle = ({ label, checked, onChange }) => (
   <button
     type="button"
     onClick={() => onChange(!checked)}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      width: '100%',
-      padding: '8px 12px',
-      fontSize: '13px',
-      fontFamily: 'var(--font-sans)',
-      color: 'var(--text-primary)',
-      background: 'var(--bg-base)',
-      border: '1px solid var(--border-default)',
-      borderRadius: 'var(--radius-md)',
-      cursor: 'pointer',
-      transition: 'border-color 150ms ease',
-    }}
+    className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[13px] text-zinc-50 transition-colors duration-150"
   >
     <span>{label}</span>
     <span
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        width: '36px',
-        height: '20px',
-        borderRadius: '10px',
-        background: checked ? 'var(--accent)' : 'var(--border-default)',
-        transition: 'background 200ms ease',
-      }}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${
+        checked ? 'bg-blue-500' : 'bg-zinc-800'
+      }`}
     >
       <span
-        style={{
-          display: 'block',
-          width: '16px',
-          height: '16px',
-          borderRadius: '50%',
-          background: '#fff',
-          transform: checked ? 'translateX(18px)' : 'translateX(2px)',
-          transition: 'transform 200ms ease',
-        }}
+        className={`h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
+          checked ? 'translate-x-4.5' : 'translate-x-0.5'
+        }`}
       />
     </span>
   </button>
 )
 
 const RangeField = ({ label, min, max, step = 1, value, onChange }) => (
-  <label style={{ display: 'block' }}>
-    <span style={{ ...labelStyle, display: 'block', marginBottom: '6px' }}>{label}</span>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+  <label className="block">
+    <span className={`mb-1.5 block ${labelClass}`}>{label}</span>
+    <div className="flex items-center gap-3">
       <input
         type="range"
         min={min}
@@ -369,9 +326,9 @@ const RangeField = ({ label, min, max, step = 1, value, onChange }) => (
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ flex: 1, accentColor: 'var(--accent)' }}
+        className="flex-1 accent-blue-500"
       />
-      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', minWidth: '28px', textAlign: 'right' }}>
+      <span className="min-w-7 text-right text-xs font-mono text-zinc-400">
         {value}
       </span>
     </div>
@@ -379,46 +336,22 @@ const RangeField = ({ label, min, max, step = 1, value, onChange }) => (
 )
 
 const ColorField = ({ label, value, onChange }) => (
-  <label style={{ display: 'block' }}>
-    <span style={{ ...labelStyle, display: 'block', marginBottom: '6px' }}>{label}</span>
+  <label className="block">
+    <span className={`mb-1.5 block ${labelClass}`}>{label}</span>
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '6px 10px',
-        background: 'var(--bg-base)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-md)',
-      }}
+      className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5"
     >
       <input
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          width: '28px',
-          height: '28px',
-          padding: 0,
-          border: '1px solid var(--border-default)',
-          borderRadius: '4px',
-          background: 'transparent',
-          cursor: 'pointer',
-        }}
+        className="h-7 w-7 cursor-pointer rounded border border-zinc-800 bg-transparent p-0"
       />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          flex: 1,
-          background: 'transparent',
-          border: 'none',
-          outline: 'none',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
-          color: 'var(--text-primary)',
-        }}
+        className="flex-1 bg-transparent text-xs font-mono text-zinc-50 outline-none"
       />
     </div>
   </label>
@@ -436,32 +369,21 @@ const SortableSectionCard = ({ section, children }) => {
   const dndStyle = {
     transform: CSS.Transform.toString(transform),
     transition: transition ?? undefined,
-    zIndex: isDragging ? 50 : undefined,
   }
 
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...dndStyle,
-        padding: '16px',
-        background: 'var(--bg-surface)',
-        border: `1px solid ${isDragging ? 'var(--accent)' : 'var(--border-default)'}`,
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: isDragging ? '0 0 24px var(--accent-glow)' : 'none',
-        opacity: isDragging ? 0.4 : 1,
-      }}
+      style={dndStyle}
+      className={`rounded-xl border bg-zinc-900 p-4 transition-all duration-150 hover:border-zinc-700 ${
+        isDragging
+          ? 'z-50 border-blue-500 opacity-40 shadow-[0_0_24px_rgba(59,130,246,0.08)]'
+          : 'border-zinc-800'
+      }`}
     >
       {/* Card Header */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}
+        className="flex cursor-pointer select-none items-center justify-between gap-3"
         role="button"
         tabIndex={0}
         aria-expanded={isOpen}
@@ -473,46 +395,32 @@ const SortableSectionCard = ({ section, children }) => {
           }
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             {...listeners}
             {...attributes}
             onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-base)',
-              color: 'var(--text-muted)',
-              cursor: 'grab',
-              transition: 'all 150ms ease',
-            }}
+            className={`flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950 text-zinc-500 transition-all duration-150 ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
             aria-label="Drag to reorder"
           >
             <GripVertical size={14} />
           </button>
 
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="flex items-center gap-2">
               <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
+                className="text-[13px] font-semibold text-zinc-50"
               >
                 {SECTION_LABELS[section.type]}
               </span>
-              <span className="section-pill" data-type={section.type}>
+              <span className={getSectionPillClass(section.type)}>
                 {section.type}
               </span>
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>
+            <p className="mt-0.5 text-[11px] text-zinc-600">
               {SECTION_DESCRIPTIONS[section.type]}
             </p>
           </div>
@@ -521,7 +429,7 @@ const SortableSectionCard = ({ section, children }) => {
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ color: 'var(--text-muted)' }}
+          className="text-zinc-500"
         >
           <ChevronDown size={16} />
         </motion.div>
@@ -535,9 +443,9 @@ const SortableSectionCard = ({ section, children }) => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            style={{ overflow: 'hidden' }}
+            className="overflow-hidden"
           >
-            <div style={{ paddingTop: '16px' }}>{children}</div>
+            <div className="pt-4">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -548,20 +456,14 @@ const SortableSectionCard = ({ section, children }) => {
 /* ── Drag Ghost ────────────────────────────────────── */
 const DragPreview = ({ section }) => (
   <div
-    className="drag-ghost"
-    style={{
-      padding: '10px 14px',
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--accent)',
-      borderRadius: 'var(--radius-md)',
-    }}
+    className="rotate-2 rounded-lg border border-blue-500 bg-zinc-900 px-3.5 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)] opacity-[0.92]"
   >
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <GripVertical size={14} style={{ color: 'var(--text-muted)' }} />
-      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+    <div className="flex items-center gap-2">
+      <GripVertical size={14} className="text-zinc-500" />
+      <span className="text-[13px] font-semibold text-zinc-50">
         {SECTION_LABELS[section.type]}
       </span>
-      <span className="section-pill" data-type={section.type}>
+      <span className={getSectionPillClass(section.type)}>
         {section.type}
       </span>
     </div>
@@ -574,57 +476,23 @@ const EmptyState = ({ onQuickStart }) => (
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '48px 24px',
-      textAlign: 'center',
-      borderRadius: 'var(--radius-lg)',
-      border: '1px dashed var(--border-default)',
-      background: 'var(--bg-surface)',
-    }}
+    className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 bg-zinc-900 px-6 py-12 text-center"
   >
     <div
-      style={{
-        width: '56px',
-        height: '56px',
-        borderRadius: 'var(--radius-lg)',
-        background: 'var(--accent-muted)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '16px',
-        border: '1px solid rgba(59,130,246,0.15)',
-      }}
+      className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-blue-500/15 bg-blue-500/15"
     >
-      <FileText size={24} style={{ color: 'var(--accent)' }} />
+      <FileText size={24} className="text-blue-500" />
     </div>
-    <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+    <h3 className="mb-1.5 text-base font-semibold text-zinc-50">
       Your README is empty
     </h3>
-    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px', maxWidth: '280px' }}>
+    <p className="mb-5 max-w-70 text-[13px] text-zinc-500">
       Add sections from the panel above, or load a full template with one click.
     </p>
     <button
       type="button"
       onClick={onQuickStart}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px 16px',
-        fontSize: '13px',
-        fontWeight: 600,
-        fontFamily: 'var(--font-sans)',
-        color: '#fff',
-        background: 'var(--accent)',
-        border: '1px solid var(--accent)',
-        borderRadius: 'var(--radius-md)',
-        cursor: 'pointer',
-        transition: 'all 150ms ease',
-      }}
+      className="flex items-center gap-1.5 rounded-lg border border-blue-500 bg-blue-500 px-4 py-2 text-[13px] font-semibold text-white transition-all duration-150 hover:border-blue-400 hover:bg-blue-400"
     >
       <Sparkles size={14} />
       Quick Start
@@ -637,18 +505,38 @@ const HeaderEditor = ({ section }) => {
   const updateSection = useSectionStore((s) => s.updateSection)
   const c = section.content ?? {}
   return (
-    <div style={{ display: 'grid', gap: '12px' }}>
+    <div className="grid gap-3">
       <Field label="Name">
-        <input style={inputStyle} value={c.name ?? ''} onChange={(e) => updateSection(section.id, { name: e.target.value })} placeholder="Jane Developer" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.name ?? ''}
+          onChange={(e) => updateSection(section.id, { name: e.target.value })}
+          placeholder="Jane Developer"
+        />
       </Field>
       <Field label="Tagline">
-        <input style={inputStyle} value={c.tagline ?? ''} onChange={(e) => updateSection(section.id, { tagline: e.target.value })} placeholder="Designing developer experiences that ship" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.tagline ?? ''}
+          onChange={(e) => updateSection(section.id, { tagline: e.target.value })}
+          placeholder="Designing developer experiences that ship"
+        />
       </Field>
       <Field label="Location">
-        <input style={inputStyle} value={c.location ?? ''} onChange={(e) => updateSection(section.id, { location: e.target.value })} placeholder="San Francisco, CA" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.location ?? ''}
+          onChange={(e) => updateSection(section.id, { location: e.target.value })}
+          placeholder="San Francisco, CA"
+        />
       </Field>
       <Field label="Website">
-        <input style={inputStyle} value={c.website ?? ''} onChange={(e) => updateSection(section.id, { website: e.target.value })} placeholder="https://janedeveloper.dev" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.website ?? ''}
+          onChange={(e) => updateSection(section.id, { website: e.target.value })}
+          placeholder="https://janedeveloper.dev"
+        />
       </Field>
     </div>
   )
@@ -659,43 +547,56 @@ const StatsEditor = ({ section }) => {
   const c = section.content ?? {}
   const statsUrl = buildStatsUrl(c)
   return (
-    <div style={{ display: 'grid', gap: '16px' }}>
+    <div className="grid gap-4">
       <Field label="GitHub Username">
-        <input style={inputStyle} value={c.username ?? ''} onChange={(e) => updateSection(section.id, { username: e.target.value })} placeholder="octocat" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.username ?? ''}
+          onChange={(e) => updateSection(section.id, { username: e.target.value })}
+          placeholder="octocat"
+        />
       </Field>
       <Field label="Theme">
-        <select style={inputStyle} value={c.theme ?? 'transparent'} onChange={(e) => updateSection(section.id, { theme: e.target.value })}>
+        <select
+          className={inputClass}
+          value={c.theme ?? 'transparent'}
+          onChange={(e) => updateSection(section.id, { theme: e.target.value })}
+        >
           {['transparent', 'dark', 'tokyonight', 'radical', 'onedark', 'cobalt', 'nightowl', 'dracula'].map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
       </Field>
       <Field label="Rank Icon">
-        <select style={inputStyle} value={c.rankIcon ?? 'github'} onChange={(e) => updateSection(section.id, { rankIcon: e.target.value })}>
+        <select
+          className={inputClass}
+          value={c.rankIcon ?? 'github'}
+          onChange={(e) => updateSection(section.id, { rankIcon: e.target.value })}
+        >
           {['github', 'percent', 'none'].map((o) => (
             <option key={o} value={o}>{o}</option>
           ))}
         </select>
       </Field>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+      <div className="grid grid-cols-2 gap-2">
         <Toggle label="Show Icons" checked={Boolean(c.showIcons)} onChange={(v) => updateSection(section.id, { showIcons: v })} />
         <Toggle label="Hide Border" checked={Boolean(c.hideBorder)} onChange={(v) => updateSection(section.id, { hideBorder: v })} />
         <Toggle label="All Commits" checked={Boolean(c.includeAllCommits)} onChange={(v) => updateSection(section.id, { includeAllCommits: v })} />
         <Toggle label="Count Private" checked={Boolean(c.countPrivate)} onChange={(v) => updateSection(section.id, { countPrivate: v })} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+      <div className="grid grid-cols-2 gap-3">
         <ColorField label="Title Color" value={c.titleColor ?? '#58a6ff'} onChange={(v) => updateSection(section.id, { titleColor: v })} />
         <ColorField label="Text Color" value={c.textColor ?? '#c9d1d9'} onChange={(v) => updateSection(section.id, { textColor: v })} />
         <ColorField label="Icon Color" value={c.iconColor ?? '#58a6ff'} onChange={(v) => updateSection(section.id, { iconColor: v })} />
         <ColorField label="BG Color" value={c.bgColor ?? '#0d1117'} onChange={(v) => updateSection(section.id, { bgColor: v })} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+      <div className="grid grid-cols-2 gap-4">
         <RangeField label="Border Radius" min={0} max={24} value={c.borderRadius ?? 8} onChange={(v) => updateSection(section.id, { borderRadius: v })} />
         <RangeField label="Card Width" min={300} max={600} value={c.cardWidth ?? 420} onChange={(v) => updateSection(section.id, { cardWidth: v })} />
         <RangeField label="Line Height" min={18} max={40} value={c.lineHeight ?? 28} onChange={(v) => updateSection(section.id, { lineHeight: v })} />
       </div>
       <Field label="Preview URL" hint="Generated from the controls above.">
-        <input style={{ ...inputStyle, color: 'var(--text-muted)' }} value={statsUrl} readOnly />
+        <input className={`${inputClass} text-zinc-500`} value={statsUrl} readOnly />
       </Field>
     </div>
   )
@@ -741,21 +642,20 @@ const SkillsEditor = ({ section }) => {
   }
 
   return (
-    <div style={{ display: 'grid', gap: '16px' }}>
+    <div className="grid gap-4">
       <RangeField label="Icon Size" min={18} max={40} value={c.iconSize ?? 32} onChange={(v) => updateSection(section.id, { iconSize: v })} />
       <Field label="Search Tech">
         <input
-          style={inputStyle}
+          className={inputClass}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
             setPage(1)
           }}
           placeholder="Search by name, slug, or category"
-          {...inputFocusProps}
         />
       </Field>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap gap-1.5">
         {categories.map((category) => {
           const isActive = activeCategory === category
           return (
@@ -766,26 +666,18 @@ const SkillsEditor = ({ section }) => {
                 setActiveCategory(category)
                 setPage(1)
               }}
-              style={{
-                padding: '6px 10px',
-                fontSize: '11px',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                borderRadius: '9999px',
-                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border-default)'}`,
-                background: isActive ? 'var(--accent-muted)' : 'var(--bg-base)',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
-              }}
+              className={`cursor-pointer rounded-full border px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-150 select-none ${
+                isActive
+                  ? 'border-blue-500 bg-blue-500/15 text-zinc-50'
+                  : 'border-zinc-800 bg-zinc-950 text-zinc-400'
+              }`}
             >
               {category}
             </button>
           )
         })}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+      <div className="grid grid-cols-3 gap-2">
         {visibleOptions.map((icon) => {
           const isActive = selected.has(icon.slug)
           return (
@@ -793,27 +685,17 @@ const SkillsEditor = ({ section }) => {
               key={icon.slug}
               type="button"
               onClick={() => toggleSkill(icon.slug)}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-                padding: '10px',
-                fontSize: '11px',
-                fontFamily: 'var(--font-sans)',
-                textAlign: 'center',
-                borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border-default)'}`,
-                background: isActive ? 'var(--accent-muted)' : 'var(--bg-base)',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
-              }}
+              className={`flex cursor-pointer flex-col gap-1.5 rounded-lg border p-2.5 text-center text-[11px] transition-all duration-150 select-none ${
+                isActive
+                  ? 'border-blue-500 bg-blue-500/15 text-zinc-50'
+                  : 'border-zinc-800 bg-zinc-950 text-zinc-400'
+              }`}
               title={`${icon.title} · ${icon.category}`}
             >
               <img
                 src={`https://cdn.simpleicons.org/${icon.slug}`}
                 alt={icon.title}
-                style={{ width: '26px', height: '26px', alignSelf: 'center' }}
+                className="h-6.5 w-6.5 self-center"
                 loading="lazy"
                 onError={(e) => {
                   e.currentTarget.src = FALLBACK_ICON
@@ -824,45 +706,27 @@ const SkillsEditor = ({ section }) => {
           )
         })}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <p style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-zinc-600">
           Showing {visibleOptions.length} of {filteredOptions.length}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage <= 1}
-            style={{
-              padding: '4px 10px',
-              fontSize: '11px',
-              borderRadius: '9999px',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-base)',
-              color: 'var(--text-secondary)',
-              opacity: currentPage <= 1 ? 0.5 : 1,
-              cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-            }}
+            className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer select-none"
           >
             Prev
           </button>
-          <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
+          <span className="text-[11px] text-zinc-600">
             Page {currentPage} of {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={currentPage >= totalPages}
-            style={{
-              padding: '4px 10px',
-              fontSize: '11px',
-              borderRadius: '9999px',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-base)',
-              color: 'var(--text-secondary)',
-              opacity: currentPage >= totalPages ? 0.5 : 1,
-              cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-            }}
+            className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer select-none"
           >
             Next
           </button>
@@ -889,80 +753,40 @@ const SocialsEditor = ({ section }) => {
   }
 
   return (
-    <div style={{ display: 'grid', gap: '10px' }}>
+    <div className="grid gap-2.5">
       {links.map((link, index) => (
         <div
           key={`${link.label}-${index}`}
-          style={{
-            display: 'grid',
-            gap: '8px',
-            padding: '12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-default)',
-            background: 'var(--bg-base)',
-          }}
+          className="grid gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3"
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={labelStyle}>Link {index + 1}</span>
+          <div className="flex items-center justify-between">
+            <span className={labelClass}>Link {index + 1}</span>
             <button
               type="button"
               onClick={() => removeLink(index)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '24px',
-                height: '24px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-default)',
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--danger)'
-                e.currentTarget.style.color = 'var(--danger)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-default)'
-                e.currentTarget.style.color = 'var(--text-muted)'
-              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-zinc-800 text-zinc-500 transition-all duration-150 hover:border-red-500 hover:text-red-500 cursor-pointer"
             >
               <Trash2 size={12} />
             </button>
           </div>
-          <input style={inputStyle} value={link.label ?? ''} onChange={(e) => updateLink(index, 'label', e.target.value)} placeholder="Label" {...inputFocusProps} />
-          <input style={inputStyle} value={link.url ?? ''} onChange={(e) => updateLink(index, 'url', e.target.value)} placeholder="https://example.com" {...inputFocusProps} />
+          <input
+            className={inputClass}
+            value={link.label ?? ''}
+            onChange={(e) => updateLink(index, 'label', e.target.value)}
+            placeholder="Label"
+          />
+          <input
+            className={inputClass}
+            value={link.url ?? ''}
+            onChange={(e) => updateLink(index, 'url', e.target.value)}
+            placeholder="https://example.com"
+          />
         </div>
       ))}
       <button
         type="button"
         onClick={addLink}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          padding: '8px',
-          fontSize: '12px',
-          fontWeight: 600,
-          fontFamily: 'var(--font-sans)',
-          color: 'var(--text-muted)',
-          background: 'transparent',
-          border: '1px dashed var(--border-default)',
-          borderRadius: 'var(--radius-md)',
-          cursor: 'pointer',
-          transition: 'all 150ms ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-muted)'
-          e.currentTarget.style.color = 'var(--text-secondary)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-default)'
-          e.currentTarget.style.color = 'var(--text-muted)'
-        }}
+        className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-800 p-2 text-xs font-semibold text-zinc-500 transition-all duration-150 hover:border-zinc-700 hover:text-zinc-400 cursor-pointer select-none"
       >
         <Plus size={14} />
         Add Link
@@ -975,17 +799,21 @@ const AboutEditor = ({ section }) => {
   const updateSection = useSectionStore((s) => s.updateSection)
   const c = section.content ?? {}
   return (
-    <div style={{ display: 'grid', gap: '12px' }}>
+    <div className="grid gap-3">
       <Field label="Heading">
-        <input style={inputStyle} value={c.heading ?? ''} onChange={(e) => updateSection(section.id, { heading: e.target.value })} placeholder="About" {...inputFocusProps} />
+        <input
+          className={inputClass}
+          value={c.heading ?? ''}
+          onChange={(e) => updateSection(section.id, { heading: e.target.value })}
+          placeholder="About"
+        />
       </Field>
       <Field label="Body">
         <textarea
-          style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
+          className={`${inputClass} min-h-25 resize-y`}
           value={c.text ?? ''}
           onChange={(e) => updateSection(section.id, { text: e.target.value })}
           placeholder="Tell the world what you are building."
-          {...inputFocusProps}
         />
       </Field>
     </div>
@@ -1005,31 +833,103 @@ const SectionEditor = ({ section }) => {
 
 /* ── Preview ───────────────────────────────────────── */
 const Preview = ({ markdown, previewTheme }) => {
-  const themeClass = previewTheme === 'dark' ? 'github-preview-dark' : 'github-preview-light'
+  const isDark = previewTheme === 'dark'
+  const theme = {
+    container: isDark
+      ? 'border-[#30363d] bg-[#0d1117] text-[#e6edf3]'
+      : 'border-[#d0d7de] bg-white text-[#1f2328]',
+    muted: isDark ? 'text-[#7d8590]' : 'text-[#656d76]',
+    link: isDark ? 'text-[#58a6ff]' : 'text-[#0969da]',
+    codeBg: isDark ? 'bg-[#161b22]' : 'bg-[#f6f8fa]',
+    blockquote: isDark ? 'border-[#30363d] text-[#7d8590]' : 'border-[#d0d7de] text-[#656d76]',
+  }
+
+  const components = {
+    h1: (props) => (
+      <h1
+        className={`mb-4 border-b pb-[0.3em] text-[32px] font-semibold ${isDark ? 'border-[#30363d]' : 'border-[#d0d7de]'}`}
+        {...props}
+      />
+    ),
+    h2: (props) => (
+      <h2
+        className={`mb-4 mt-6 border-b pb-[0.3em] text-[24px] font-semibold ${isDark ? 'border-[#30363d]' : 'border-[#d0d7de]'}`}
+        {...props}
+      />
+    ),
+    h3: (props) => (
+      <h3 className="mb-4 mt-6 text-[20px] font-semibold" {...props} />
+    ),
+    p: (props) => {
+      const children = React.Children.toArray(props.children)
+      const isOnlyImages = children.length > 0 && children.every((child) => {
+        if (typeof child === 'string') return child.trim() === ''
+        if (!React.isValidElement(child)) return false
+        const src = child.props?.src
+        return (
+          typeof src === 'string'
+          && (src.includes('cdn.simpleicons.org') || src.includes('github-readme-stats.vercel.app'))
+        )
+      })
+      return (
+        <p className={`mb-4 leading-normal ${isOnlyImages ? 'select-none' : ''}`} {...props} />
+      )
+    },
+    ul: (props) => (
+      <ul className="m-0 p-0" {...props} />
+    ),
+    ol: (props) => (
+      <ol className="m-0 p-0" {...props} />
+    ),
+    a: (props) => (
+      <a className={`${theme.link} hover:underline`} {...props} />
+    ),
+    li: (props) => (
+      <li className="mb-1 ml-6 list-disc" {...props} />
+    ),
+    code: ({ inline, ...props }) => (
+      inline ? (
+        <code className={`rounded-md ${theme.codeBg} px-[0.4em] py-[0.2em] text-[85%] font-mono`} {...props} />
+      ) : (
+        <code className="bg-transparent p-0 text-[100%] font-mono" {...props} />
+      )
+    ),
+    pre: (props) => (
+      <pre className={`mb-4 overflow-auto rounded-md ${theme.codeBg} p-4 text-[85%] leading-[1.45]`} {...props} />
+    ),
+    blockquote: (props) => (
+      <blockquote className={`my-0 border-l-4 px-4 ${theme.blockquote}`} {...props} />
+    ),
+    img: ({ src = '', alt = '', ...props }) => {
+      const isTechIcon = typeof src === 'string' && src.includes('cdn.simpleicons.org')
+      const isGitStats = typeof src === 'string' && src.includes('github-readme-stats.vercel.app')
+      const selectNone = (isTechIcon || isGitStats) ? 'select-none' : ''
+      const className = isTechIcon
+        ? 'inline-block align-middle mr-2.5 mb-2 h-auto w-[clamp(24px,5vw,40px)] max-w-none'
+        : 'max-w-full h-auto'
+      return <img src={src} alt={alt} className={`${className} ${selectNone}`} {...props} />
+    },
+  }
 
   return (
     <div
-      className={themeClass}
-      style={{
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-default)',
-        maxWidth: '880px',
-        width: '100%',
-        boxShadow: 'var(--shadow-md)',
-      }}
+      className={`w-full max-w-220 rounded-xl border ${theme.container} shadow-[0_4px_12px_rgba(0,0,0,0.5)]`}
     >
-      <div style={{ padding: '32px 40px' }}>
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
-        >
-          {markdown}
-        </ReactMarkdown>
-        {!markdown && (
-          <p style={{ fontSize: '14px', color: 'var(--gh-muted, var(--text-muted))' }}>
-            Start adding sections to see the preview.
-          </p>
-        )}
+      <div className="px-10 py-8">
+        <div className="wrap-break-word text-base leading-normal font-['-apple-system', BlinkMacSystemFont,'Segoe_UI','Noto_Sans',Helvetica,Arial,sans-serif]">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            components={components}
+          >
+            {markdown}
+          </ReactMarkdown>
+          {!markdown && (
+            <p className={`text-sm ${theme.muted}`}>
+              Start adding sections to see the preview.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -1040,41 +940,18 @@ const GithubModeToggle = () => {
   const previewTheme = useSectionStore((s) => s.previewTheme)
   const setPreviewTheme = useSectionStore((s) => s.setPreviewTheme)
 
-  const btnBase = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '4px 10px',
-    fontSize: '12px',
-    fontWeight: 500,
-    fontFamily: 'var(--font-sans)',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid transparent',
-    cursor: 'pointer',
-    transition: 'all 150ms ease',
-  }
-
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '2px',
-        padding: '3px',
-        background: 'var(--bg-base)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-default)',
-      }}
+      className="flex items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-950 p-0.75 select-none"
     >
       <button
         type="button"
         onClick={() => setPreviewTheme('dark')}
-        style={{
-          ...btnBase,
-          background: previewTheme === 'dark' ? 'var(--bg-surface)' : 'transparent',
-          color: previewTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-muted)',
-          border: previewTheme === 'dark' ? '1px solid var(--border-default)' : '1px solid transparent',
-        }}
+        className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-all duration-150 cursor-pointer ${
+          previewTheme === 'dark'
+            ? 'border-zinc-800 bg-zinc-900 text-zinc-50'
+            : 'border-transparent text-zinc-500'
+        }`}
       >
         <Moon size={12} />
         Dark
@@ -1082,12 +959,11 @@ const GithubModeToggle = () => {
       <button
         type="button"
         onClick={() => setPreviewTheme('light')}
-        style={{
-          ...btnBase,
-          background: previewTheme === 'light' ? 'var(--bg-surface)' : 'transparent',
-          color: previewTheme === 'light' ? 'var(--text-primary)' : 'var(--text-muted)',
-          border: previewTheme === 'light' ? '1px solid var(--border-default)' : '1px solid transparent',
-        }}
+        className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-all duration-150 cursor-pointer ${
+          previewTheme === 'light'
+            ? 'border-zinc-800 bg-zinc-900 text-zinc-50'
+            : 'border-transparent text-zinc-500'
+        }`}
       >
         <Sun size={12} />
         Light
@@ -1115,6 +991,17 @@ const ReadmeBuilder = ({ activePanel }) => {
     [activeId, sections],
   )
 
+  useEffect(() => {
+    if (activeId) {
+      document.body.style.cursor = 'grabbing'
+    } else {
+      document.body.style.cursor = ''
+    }
+    return () => {
+      document.body.style.cursor = ''
+    }
+  }, [activeId])
+
   const handleDragStart = (e) => setActiveId(e.active.id)
   const handleDragEnd = (e) => {
     if (e.over && e.active.id !== e.over.id) moveSection(e.active.id, e.over.id)
@@ -1137,7 +1024,7 @@ const ReadmeBuilder = ({ activePanel }) => {
 
   const handleResetDefaults = () => {
     resetToDefaults()
-    toast.success('Defaults restored.')
+    toast.success('Defaults template restored.')
   }
 
   const handleQuickStart = () => {
@@ -1146,38 +1033,26 @@ const ReadmeBuilder = ({ activePanel }) => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+    <div className="flex flex-1 flex-col">
       <Navbar onReset={handleResetDefaults} onCopy={handleCopyMarkdown} />
 
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '400px 1fr',
-          gap: '0px',
-          flex: 1,
-          minHeight: 0,
-        }}
+        className="grid min-h-0 flex-1 grid-cols-[400px_1fr]"
       >
         {/* ── Builder Column ─────────────────── */}
         <div
-          style={{
-            borderRight: '1px solid var(--border-default)',
-            overflowY: 'auto',
-            height: 'calc(100vh - 49px)',
-            position: 'sticky',
-            top: '49px',
-          }}
+          className="sticky top-12.25 h-[calc(100vh-49px)] overflow-y-auto border-r border-zinc-800 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-[3px] [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-track]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700"
         >
-          <div style={{ padding: '20px' }}>
+          <div className="p-5">
             {/* Add Section Panel */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <p style={labelStyle}>Add Section</p>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            <div className="mb-5">
+              <div className="mb-3">
+                <p className={labelClass}>Add Section</p>
+                <p className="mt-0.5 text-xs text-zinc-500">
                   Choose a template to insert.
                 </p>
               </div>
-              <div style={{ display: 'grid', gap: '6px' }}>
+              <div className="grid gap-1.5">
                 {SECTION_LIBRARY.map((item) => (
                   <button
                     key={item.type}
@@ -1186,48 +1061,18 @@ const ReadmeBuilder = ({ activePanel }) => {
                       addSection(item.type)
                       toast.success(`${item.label} section added.`)
                     }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      textAlign: 'left',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border-default)',
-                      background: 'var(--bg-surface)',
-                      cursor: 'pointer',
-                      transition: 'all 150ms ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-muted)'
-                      e.currentTarget.style.background = 'var(--bg-elevated)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-default)'
-                      e.currentTarget.style.background = 'var(--bg-surface)'
-                    }}
+                    className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-left transition-all duration-150 hover:border-zinc-700 hover:bg-[#1e1e22] cursor-pointer"
                   >
                     <div>
-                      <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                      <p className="text-[13px] font-medium text-zinc-50">
                         {item.label}
                       </p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '1px' }}>
+                      <p className="mt-px text-[11px] text-zinc-600">
                         {item.description}
                       </p>
                     </div>
                     <span
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '50%',
-                        border: '1px solid var(--border-default)',
-                        background: 'var(--bg-base)',
-                        color: 'var(--text-muted)',
-                        flexShrink: 0,
-                      }}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-950 text-zinc-500"
                     >
                       <Plus size={14} />
                     </span>
@@ -1238,18 +1083,14 @@ const ReadmeBuilder = ({ activePanel }) => {
 
             {/* Divider */}
             <div
-              style={{
-                height: '1px',
-                background: 'var(--border-default)',
-                marginBottom: '20px',
-              }}
+              className="mb-5 h-px bg-zinc-800"
             />
 
             {/* Active Sections */}
             <div>
-              <div style={{ marginBottom: '12px' }}>
-                <p style={labelStyle}>Active Sections</p>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div className="mb-3">
+                <p className={labelClass}>Active Sections</p>
+                <p className="mt-0.5 text-xs text-zinc-500">
                   Drag to reorder · Expand to edit.
                 </p>
               </div>
@@ -1257,7 +1098,7 @@ const ReadmeBuilder = ({ activePanel }) => {
               {sections.length === 0 ? (
                 <EmptyState onQuickStart={handleQuickStart} />
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="flex flex-col gap-2">
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -1272,25 +1113,11 @@ const ReadmeBuilder = ({ activePanel }) => {
                       <AnimatePresence>
                         {sections.map((section) => (
                           <SortableSectionCard key={section.id} section={section}>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                            <div className="mb-3 flex justify-end">
                               <button
                                 type="button"
                                 onClick={() => removeSection(section.id)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '4px 10px',
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  fontFamily: 'var(--font-sans)',
-                                  color: 'var(--danger)',
-                                  background: 'var(--danger-muted)',
-                                  border: '1px solid rgba(239,68,68,0.2)',
-                                  borderRadius: 'var(--radius-sm)',
-                                  cursor: 'pointer',
-                                  transition: 'all 150ms ease',
-                                }}
+                                className="flex items-center gap-1 rounded-md border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.12)] px-2.5 py-1 text-[11px] font-semibold text-red-500 transition-all duration-150 cursor-pointer select-none"
                               >
                                 <Trash2 size={12} />
                                 Remove
@@ -1313,28 +1140,17 @@ const ReadmeBuilder = ({ activePanel }) => {
 
         {/* ── Preview Column ─────────────────── */}
         <div
-          style={{
-            overflowY: 'auto',
-            height: 'calc(100vh - 49px)',
-            position: 'sticky',
-            top: '49px',
-            background: 'var(--bg-base)',
-          }}
+          className="sticky top-12.25 h-[calc(100vh-49px)] overflow-y-auto bg-zinc-950 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-[3px] [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-track]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700"
         >
-          <div style={{ padding: '20px' }}>
+          <div className="p-5">
             {/* Preview Header */}
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px',
-              }}
+              className="mb-4 flex items-center justify-between"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="live-dot" />
-                <span style={{ ...labelStyle }}>Preview</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>· Live</span>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 animate-pulse" />
+                <span className={labelClass}>Preview</span>
+                <span className="text-[11px] text-zinc-600">· Live</span>
               </div>
               <GithubModeToggle />
             </div>
@@ -1349,14 +1165,7 @@ const ReadmeBuilder = ({ activePanel }) => {
         theme="dark"
         position="bottom-right"
         toastOptions={{
-          style: {
-            background: 'var(--bg-surface)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-default)',
-            fontFamily: 'var(--font-sans)',
-            fontSize: '13px',
-            borderRadius: 'var(--radius-md)',
-          },
+          className: '!rounded-lg !border !border-zinc-800 !bg-zinc-900 !text-[13px] !text-zinc-50 !font-sans select-none',
         }}
       />
     </div>
